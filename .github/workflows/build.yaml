@@ -1,0 +1,74 @@
+---
+name: Build and publish a Docker image
+
+on:  # yamllint disable-line rule:truthy
+    push:
+        tags:
+            - 'v[0-9]+.[0-9]+.[0-9]+'
+        branches:
+            - "*"
+        paths:
+            - "Dockerfile"
+            - "supported_versions.yaml"
+            - ".github/workflows/build.yaml"
+
+env:
+    ORGANIZATION: "derekstraka"
+    IMAGE_NAME: "terraform-azure"
+
+jobs:
+    load_supported_versions:
+        runs-on: ubuntu-22.04
+
+        outputs:
+            matrix: ${{ steps.set-matrix.outputs.matrix }}
+
+        steps:
+            - name: Check out the repo
+              uses: actions/checkout@v3
+
+            - name: Read version YAML file
+              id: set-matrix
+              run: |
+                    SUPPORTED_VERSIONS=$(cat ./supported_versions.yaml | python3 -c 'import sys, yaml, json; print(json.dumps(yaml.safe_load(sys.stdin)))')
+                    echo "matrix=${SUPPORTED_VERSIONS}" >> $GITHUB_OUTPUT
+
+    build:
+        runs-on: ubuntu-22.04
+        needs: load_supported_versions
+        strategy:
+            matrix: ${{ fromJSON(needs.load_supported_versions.outputs.matrix) }}
+
+        steps:
+            - name: Check out the repo
+              uses: actions/checkout@v3
+
+            - name: Save branch name as env var
+              run: echo "BRANCH=${GITHUB_REF##*/}" >> $GITHUB_ENV
+
+            - name: Build and save image tag
+              run: echo "IMAGE_TAG=${BRANCH}_terraform-${{ matrix.terraform_version }}_azcli-${{ matrix.azure_cli_version }}" >> $GITHUB_ENV
+
+            - name: Set up QEMU
+              uses: docker/setup-qemu-action@v2
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v2
+
+            - name: Log in to Docker Hub
+              uses: docker/login-action@v2.2.0
+              with:
+                  username: ${{ secrets.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+            - name: Build and push Docker image
+              uses: docker/build-push-action@v4.1.1
+              with:
+                  context: .
+                  file: ./Dockerfile
+                  platforms: linux/amd64,linux/arm64
+                  push: ${{ github.ref_type == 'tag' ||  github.event.base_ref =='refs/heads/main' }}
+                  tags: ${{ env.ORGANIZATION }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG}}
+                  build-args: |
+                    TERRAFORM_VERSION=${{ matrix.terraform_version }}
+                    AZURE_CLI_VERSION=${{ matrix.azure_cli_version }}

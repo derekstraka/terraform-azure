@@ -1,0 +1,54 @@
+---
+name: Push latest version of the container to docker hub
+
+on:  # yamllint disable-line rule:truthy
+  push:
+    branches:
+      - "main"
+    paths:
+      - "Dockerfile"
+      - "supported_versions.yaml"
+      - ".github/workflows/publish-latest.yml"
+
+env:
+  ORGANIZATION: "derekstraka"
+  IMAGE_NAME: "terraform-azure"
+  IMAGE_TAG: "latest"
+
+jobs:
+  build_push_latest:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+
+      - name: Retrieve latest suported versions
+        run: |
+          SUPPORTED_VERSIONS=$(cat ./supported_versions.yaml | python3 -c 'import sys, yaml, json; print(json.dumps(yaml.safe_load(sys.stdin)))')
+          echo "AZURE_CLI_VERSION=$(echo ${SUPPORTED_VERSIONS} | jq -r '.azure_cli_version | sort | .[-1]')" >> $GITHUB_ENV
+          echo "TERRAFORM_VERSION=$(echo ${SUPPORTED_VERSIONS} | jq -r '.terraform_version | sort | .[-1]')" >> $GITHUB_ENV
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2.2.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4.1.1
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          file: ./Dockerfile
+          push: true
+          tags: ${{ env.ORGANIZATION }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG}}
+          build-args: |
+                TERRAFORM_VERSION=${{ env.TERRAFORM_VERSION }}
+                AZURE_CLI_VERSION=${{ env.AZURE_CLI_VERSION }}
