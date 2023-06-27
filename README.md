@@ -37,7 +37,7 @@ The following image tag strategy is leveraged for the container builds:
 Simply launch the container and use the CLI as you would on any other platform, for instance using the latest image:
 
 ```bash
-docker run -i -v $PWD:/data -w /data -t derekstraka/terraform-azure:latest
+docker run -i -v $PWD:/data -w /data -t derekstraka/terraform-azure:latest /bin/bash
 ```
 
 ### Building an image
