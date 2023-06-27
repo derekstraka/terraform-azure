@@ -1,5 +1,5 @@
 ---
-name: Linting the Dockerfile
+name: Lint  # Linting the Dockerfile and yaml files
 
 on:  # yamllint disable-line rule:truthy
   push:
@@ -9,8 +9,9 @@ on:  # yamllint disable-line rule:truthy
       - "**"
     paths:
       - "Dockerfile"
-      - "hadolint.yaml"
+      - "*.yaml"
       - ".github/workflows/*.yaml"
+      - "./*.md"
 
 jobs:
   lint:
@@ -30,3 +31,9 @@ jobs:
         uses: ibiqlik/action-yamllint@v3
         with:
           config_data: "{extends: default, rules: {document-start: disable, line-length: disable}}"
+
+      - name: Lint README file
+        uses: avto-dev/markdown-lint@v1
+        with:
+          args: './README.md'
+          config: '.markdownlint.yaml'
