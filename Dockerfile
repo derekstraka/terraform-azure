@@ -19,6 +19,7 @@ RUN pip3 install --no-cache-dir --upgrade pip setuptools && \
 # Build final image with the az command line tools
 FROM  hashicorp/terraform:${TERRAFORM_VERSION}
 LABEL org.opencontainers.image.authors="derek@asterius.io"
+ENV HISTFILE=/data/.bash_history
 # Don't pin the packages to allow floating versions based on build arguments
 # hadolint ignore=DL3013,DL3018
 RUN apk add --update --no-cache python3 bash \
