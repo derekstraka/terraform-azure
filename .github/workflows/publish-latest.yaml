@@ -1,5 +1,5 @@
 ---
-name: Push latest version of the container to docker hub
+name: Publish  # Push latest version of the container to docker hub
 
 on:  # yamllint disable-line rule:truthy
   push:
