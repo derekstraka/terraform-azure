@@ -9,7 +9,7 @@ ARG PYTHON_VERSION
 ENV PYTHONUNBUFFERED=1
 # Don't pin the packages to allow floating versions based on build arguments
 # hadolint ignore=DL3018
-RUN apk add --update --no-cache gcc musl-dev linux-headers libffi-dev python3 python3-dev && ln -sf python3 /usr/bin/python
+RUN apk add --update --no-cache gcc musl-dev linux-headers libffi-dev python3 python3-dev openssl-dev cargo pkgconfig make && ln -sf python3 /usr/bin/python
 RUN python3 -m ensurepip
 # Don't pin the packages to allow floating versions based on build arguments
 # hadolint ignore=DL3013

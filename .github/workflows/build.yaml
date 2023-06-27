@@ -66,7 +66,7 @@ jobs:
               with:
                   context: .
                   file: ./Dockerfile
-                  platforms: linux/amd64,linux/arm64,linux/arm/v6,linux/386
+                  platforms: linux/amd64,linux/arm64
                   push: ${{ github.ref_type == 'tag' ||  github.event.base_ref =='refs/heads/main' }}
                   tags: ${{ env.ORGANIZATION }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG}}
                   build-args: |
