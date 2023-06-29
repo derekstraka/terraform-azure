@@ -4,7 +4,7 @@ name: Publish  # Push latest version of the container to docker hub
 on:  # yamllint disable-line rule:truthy
   push:
     branches:
-      - "main"
+      - "**"
 
 env:
   ORGANIZATION: "derekstraka"
@@ -37,13 +37,32 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
+      - name: Build docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          load: true
+          tags: ${{ env.ORGANIZATION }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG}}
+          build-args: |
+              TERRAFORM_VERSION=${{ env.TERRAFORM_VERSION }}
+              AZURE_CLI_VERSION=${{ env.AZURE_CLI_VERSION }}
+
+      - name: Generate the tests from the templates
+        run: ./generate_tests.sh -t ${{ env.TERRAFORM_VERSION }} -a ${{ env.AZURE_CLI_VERSION  }}
+
+      - name: run structure tests
+        uses: plexsystems/container-structure-test-action@v0.1.0
+        with:
+          image: ${{ env.ORGANIZATION }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG}}
+          config: tests/test.yaml
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v4.1.1
         with:
           context: .
-          platforms: linux/amd64,linux/arm64,linux/arm/v6,linux/386
+          platforms: linux/amd64,linux/arm64
           file: ./Dockerfile
-          push: true
+          push: ${{ github.event.base_ref =='refs/heads/main' }}
           tags: ${{ env.ORGANIZATION }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG}}
           build-args: |
                 TERRAFORM_VERSION=${{ env.TERRAFORM_VERSION }}
