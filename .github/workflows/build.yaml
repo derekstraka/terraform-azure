@@ -6,11 +6,13 @@ on:  # yamllint disable-line rule:truthy
         tags:
             - 'v[0-9]+.[0-9]+.[0-9]+'
         branches:
-            - "*"
+            - "**"
         paths:
             - "Dockerfile"
             - "supported_versions.yaml"
             - ".github/workflows/build.yaml"
+            - "tests/*"
+            - "generate_tests.sh"
 
 env:
     ORGANIZATION: "derekstraka"
@@ -61,7 +63,26 @@ jobs:
                   username: ${{ secrets.DOCKERHUB_USERNAME }}
                   password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-            - name: Build and push Docker image
+            - name: Build docker image
+              uses: docker/build-push-action@v4
+              with:
+                  context: .
+                  load: true
+                  tags: ${{ env.ORGANIZATION }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG}}
+                  build-args: |
+                    TERRAFORM_VERSION=${{ matrix.terraform_version }}
+                    AZURE_CLI_VERSION=${{ matrix.azure_cli_version }}
+
+            - name: Generate the tests from the templates
+              run: ./generate_tests.sh -t ${{ matrix.terraform_version }} -a ${{ matrix.azure_cli_version }}
+
+            - name: run structure tests
+              uses: plexsystems/container-structure-test-action@v0.1.0
+              with:
+                  image: ${{ env.ORGANIZATION }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG}}
+                  config: tests/test.yaml
+
+            - name: Push Docker image
               uses: docker/build-push-action@v4.1.1
               with:
                   context: .
