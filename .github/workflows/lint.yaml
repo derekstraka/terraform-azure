@@ -3,15 +3,10 @@ name: Lint  # Linting the Dockerfile and yaml files
 
 on:  # yamllint disable-line rule:truthy
   push:
-    tags-ignore:
+    tags:
       - "**"
     branches:
       - "**"
-    paths:
-      - "Dockerfile"
-      - "*.yaml"
-      - ".github/workflows/*.yaml"
-      - "./*.md"
 
 jobs:
   lint:
