@@ -62,7 +62,7 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           file: ./Dockerfile
-          push: ${{ github.event.base_ref =='refs/heads/main' }}
+          push: ${{ github.event.ref =='refs/heads/main' }}
           tags: ${{ env.ORGANIZATION }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG}}
           build-args: |
                 TERRAFORM_VERSION=${{ env.TERRAFORM_VERSION }}
