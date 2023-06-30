@@ -51,7 +51,7 @@ jobs:
         run: ./generate_tests.sh -t ${{ env.TERRAFORM_VERSION }} -a ${{ env.AZURE_CLI_VERSION  }}
 
       - name: run structure tests
-        uses: plexsystems/container-structure-test-action@v0.1.0
+        uses: plexsystems/container-structure-test-action@v0.3.0
         with:
           image: ${{ env.ORGANIZATION }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG}}
           config: tests/test.yaml
