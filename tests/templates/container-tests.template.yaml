@@ -27,6 +27,6 @@ metadataTest:
     - key: "org.opencontainers.image.authors"
       value: "derek@asterius.io"
   entrypoint: ["/bin/bash", "-c"]
-  env:
+  envVars:
     - key: HISTFILE
       value: /data/.bash_history

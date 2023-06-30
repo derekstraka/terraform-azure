@@ -11,7 +11,7 @@ on:  # yamllint disable-line rule:truthy
             - "Dockerfile"
             - "supported_versions.yaml"
             - ".github/workflows/build.yaml"
-            - "tests/*"
+            - "tests/**"
             - "generate_tests.sh"
 
 env:
