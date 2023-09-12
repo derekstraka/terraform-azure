@@ -52,7 +52,7 @@ jobs:
               run: echo "IMAGE_TAG=${BRANCH}_terraform-${{ matrix.terraform_version }}_azcli-${{ matrix.azure_cli_version }}" >> $GITHUB_ENV
 
             - name: Set up QEMU
-              uses: docker/setup-qemu-action@v2
+              uses: docker/setup-qemu-action@v3
 
             - name: Set up Docker Buildx
               uses: docker/setup-buildx-action@v2
